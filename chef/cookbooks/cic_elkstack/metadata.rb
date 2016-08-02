@@ -1,0 +1,7 @@
+name 'cic_elkstack'
+maintainer 'The Authors'
+maintainer_email 'you@example.com'
+license 'all_rights'
+description 'Installs/Configures cic_elkstack'
+long_description 'Installs/Configures cic_elkstack'
+version '0.1.0'
