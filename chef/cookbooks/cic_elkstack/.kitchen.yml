@@ -1,16 +1,73 @@
 ---
 driver:
   name: vagrant
+  network:
+  - ["forwarded_port", {guest: 9200, host: 9200, auto_correct: true}]  # elastic
+  - ["forwarded_port", {guest: 80,   host: 8080, auto_correct: true}]  # kibana
+  - ["forwarded_port", {guest: 443,   host: 8443, auto_correct: true}] # ssl
+
+driver_config:
+  require_chef_omnibus: true
 
 provisioner:
   name: chef_zero
+  client_rb:
+    environment: _default
+  attributes:
+    firewall:
+      ubuntu_iptables: true
+      allow_ssh: true
+    openssh:
+      server:
+        password_authentication: 'yes'
+        permit_root_login: 'yes'
+    cloud:
+      public_ipv4: '127.0.0.1'
+    authorization:
+      sudo:
+        users: ['vagrant']
+        passwordless: true
+    elasticsearch:
+      network:
+        host: '127.0.0.1'
+      index:
+        number_of_replicas: 0
+        # so the kitchen node doesn't have unallocated replica shards
+        # and comes up green (healthy) instead of yellow
+      discovery:
+        zen:
+          minimum_master_nodes: 1 # since search returns more than one, but they are fake
+    elkstack:
+      config:
+        iptables:
+          enabled: true
+        kibana:
+          password: 'kibana'
 
 platforms:
+  - name: ubuntu-14.04
+    run_list:
+    - recipe[apt]
   - name: ubuntu-12.04
+    run_list:
+    - recipe[apt]
   - name: centos-6.5
+    run_list:
+    - recipe[yum]
+    attributes:
+      java:
+        jdk_version: 8
+  - name: centos-7
+    run_list:
+    - recipe[yum]
+    attributes:
+      java:
+        jdk_version: 8
 
 suites:
   - name: default
     run_list:
-      - recipe[cic_elkstack::default]
+      - recipe[java::default]
+#      - recipe[cic_elkstack::default]
+      - recipe[cic_elkstack::packer]
     attributes:

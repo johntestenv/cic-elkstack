@@ -53,7 +53,6 @@ describe 'kibana' do
   describe port(5601) do
     it { should be_listening }
   end
-
 end
 
 describe 'logstash' do
